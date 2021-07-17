@@ -1,0 +1,103 @@
+version: v1beta10
+
+# `vars` specifies variables which may be used as ${VAR_NAME} in devspace.yaml
+vars:
+  - name: IMAGE
+    value: fobytobi/noa
+  - name: NAMESPACE
+    value: noa
+
+# `deployments` tells DevSpace how to deploy this project
+deployments:
+  - name: noa
+    # This deployment uses `kubectl` but you can also define `helm` deployments
+    kubectl:
+      manifests:
+        - deploy/*
+
+images:
+  app:
+    image: ${IMAGE}
+    dockerfile: ./Dockerfile
+    tags:
+      - dev-${DEVSPACE_GIT_COMMIT}-${DEVSPACE_TIMESTAMP}
+    build:
+      buildKit:
+        options:
+          target: dev
+
+# `dev` only applies when you run `devspace dev`
+dev:
+  # `dev.ports` specifies all ports that should be forwarded while `devspace dev` is running
+  # Port-forwarding lets you access your application via localhost on your local machine
+  ports:
+    - imageSelector: ${IMAGE} # Select the Pod that runs our `${IMAGE}`
+      forward:
+        - port: 8080
+        - port: 40000 # dlv port
+
+  # `dev.sync` configures a file sync between our Pods in k8s and your local project files
+  sync:
+    - imageSelector: ${IMAGE} # Select the Pod that runs our `${IMAGE}`
+      localSubPath: ./
+      containerPath: /src # working directory, set as WORKDIR in the Dockerfile
+      excludePaths:
+        - .git/
+      uploadExcludePaths:
+        - deploy/
+        - run.sh
+        - skaffold.yaml
+        - .docker
+      disableDownload: true
+
+  # # `dev.terminal` tells DevSpace to open a terminal as a last step during `devspace dev`
+  # terminal:
+  #   imageSelector: ${IMAGE} # Select the Pod that runs our `${IMAGE}`
+  #   # With this optional `command` we can tell DevSpace to run a script when opening the terminal
+  #   # This is often useful to display help info for new users or perform initial tasks (e.g. installing dependencies)
+  #   # DevSpace has generated an example ./devspace_start.sh file in your local project - Feel free to customize it!
+  #   command:
+  #     - ./devspace_start.sh
+
+# `profiles` lets you modify the config above for different environments (e.g. dev vs production)
+profiles:
+  # This profile is called `production` and you can use it for example using: devspace deploy -p production
+  # We generally recommend to use the base config without any profiles as optimized for development (e.g. image build+push is disabled)
+  - name: prd
+    # This profile adds our image to the config so that DevSpace will build, tag and push our image before the deployment
+    merge:
+      images:
+        app:
+          image: ${IMAGE} # Use the value of our `${IMAGE}` variable here (see vars above)
+          dockerfile: ./Dockerfile
+          tags:
+            - ${DEVSPACE_GIT_COMMIT}-${DEVSPACE_TIMESTAMP}
+          build:
+            buildKit:
+              options:
+                target: prd
+              inCluster:
+                name: buildkit
+                namespace: buildkit
+                rootless: true
+                noCreate: true
+                noRecreate: true
+              args:
+                - "--cache-to"
+                - "type=inline"
+                - "--cache-from"
+                - "fobytobi/kube-dev"
+
+  - name: debug
+    patches:
+      - op: replace
+        path: images.app.entrypoint
+        value: [ "air", "-c", ".air.debug.toml" ]
+
+commands:
+  - name: debug
+    command: "devspace dev --profile=debug"
+    description: start remote debugging session with exposed debugger on port 40000
+
+  - name: deploy
+    command: devspace deploy --profile=prd --namespace ${NAMESPACE}

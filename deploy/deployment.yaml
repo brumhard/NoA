@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: noa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: noa
+  template:
+    metadata:
+      labels:
+        app: noa
+    spec:
+      containers:
+        - name: webhook
+          image: fobytobi/noa
+          env:
+            - name: NOA_PORT
+              value: "8443"
+            - name: NOA_TLS_CERT
+              value: /certs/tls.crt
+            - name: NOA_TLS_KEY
+              value: /certs/tls.key
+          ports:
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: https
+              scheme: HTTPS
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: https
+              scheme: HTTPS
+          volumeMounts:
+            - name: certs
+              mountPath: /certs
+      volumes:
+        - name: certs
+          secret:
+            secretName: noa-tls

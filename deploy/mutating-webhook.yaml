@@ -1,0 +1,27 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: noa
+  annotations:
+    cert-manager.io/inject-ca-from: noa/noa-selfsigned
+webhooks:
+  - name: webhook.noa.brumhard.io
+    rules:
+      - apiGroups:
+          - ""
+        apiVersions:
+          - "*"
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - secrets
+    admissionReviewVersions: [ "v1" ]
+    failurePolicy: Fail
+    sideEffects: None
+    clientConfig:
+      service:
+        name: noa
+        namespace: noa
+        path: /mutate
+        port: 8443
