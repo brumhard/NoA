@@ -22,6 +22,8 @@ spec:
               value: /certs/tls.crt
             - name: NOA_TLS_KEY
               value: /certs/tls.key
+            - name: NOA_ANNOTATIONS
+              value: testannotation,kubectl.kubernetes.io/last-applied-configuration
           ports:
             - name: https
               containerPort: 8443
@@ -43,3 +45,5 @@ spec:
         - name: certs
           secret:
             secretName: noa-tls
+
+

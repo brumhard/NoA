@@ -34,6 +34,7 @@ func run() error {
 			Cert string
 			Key  string
 		}
+		Annotations []string
 	}{
 		Port: 8443,
 	}
@@ -46,7 +47,7 @@ func run() error {
 
 	logger.Info("got config", zap.Any("value", cfg))
 
-	admissionHandler := noa.NewHandler(logger)
+	admissionHandler := noa.NewHandler(logger, cfg.Annotations)
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
