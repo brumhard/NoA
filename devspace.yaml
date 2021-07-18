@@ -3,7 +3,7 @@ version: v1beta10
 # `vars` specifies variables which may be used as ${VAR_NAME} in devspace.yaml
 vars:
   - name: IMAGE
-    value: fobytobi/noa
+    value: brumhard/noa
   - name: NAMESPACE
     value: noa
 
@@ -86,7 +86,7 @@ profiles:
                 - "--cache-to"
                 - "type=inline"
                 - "--cache-from"
-                - "fobytobi/kube-dev"
+                - "brumhard/noa"
 
   - name: debug
     patches:

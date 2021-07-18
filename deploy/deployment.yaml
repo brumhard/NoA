@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: webhook
-          image: fobytobi/noa
+          image: brumhard/noa
           env:
             - name: NOA_PORT
               value: "8443"
