@@ -1,0 +1,5 @@
+noa has been deployed successfully!
+
+For information on how to configure noa take a look at the documentation:
+
+https://github.com/brumhard/noa

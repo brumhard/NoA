@@ -1,0 +1,6 @@
+apiVersion: v2
+name: noa
+description: Creates an admission webhook that checks incoming secrets and deletes defined annotations from them.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

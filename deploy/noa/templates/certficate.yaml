@@ -1,0 +1,35 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "noa.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+  {{- include "noa.labels" . | nindent 4 }}
+spec:
+  selfSigned: { }
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "noa.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  secretName: {{ include "noa.fullname" . }}-tls
+  duration: 87600h # 10y
+  renewBefore: 8760h # 1y
+  commonName: {{ include "noa.fullname" . }}.{{ .Release.Namespace }}.svc
+  isCA: false
+  privateKey:
+    algorithm: ECDSA
+    size: 521
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - {{ include "noa.fullname" . }}
+    - {{ include "noa.fullname" . }}.{{ .Release.Namespace }}.svc
+  issuerRef:
+    name: {{ include "noa.fullname" . }}
+    kind: Issuer

@@ -10,10 +10,16 @@ vars:
 # `deployments` tells DevSpace how to deploy this project
 deployments:
   - name: noa
-    # This deployment uses `kubectl` but you can also define `helm` deployments
-    kubectl:
-      manifests:
-        - deploy/*
+    helm:
+      chart:
+        name: ./deploy/noa
+      values:
+        deleteAnnotations:
+          - testannotation
+        failurePolicy: Ignore # TODO: need to find a way to set it to Fail without breaking the deployment
+        image:
+          repository: image(app)
+          tag: tag(app)
 
 images:
   app:

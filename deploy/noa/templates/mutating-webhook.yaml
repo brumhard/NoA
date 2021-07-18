@@ -1,9 +1,11 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: noa
+  name: {{ include "noa.fullname" . }}
+  labels:
+  {{- include "noa.labels" . | nindent 4 }}
   annotations:
-    cert-manager.io/inject-ca-from: noa/noa-selfsigned
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "noa.fullname" . }}
 webhooks:
   - name: webhook.noa.brumhard.io
     rules:
@@ -17,11 +19,10 @@ webhooks:
         resources:
           - secrets
     admissionReviewVersions: [ "v1" ]
-    failurePolicy: Fail
+    failurePolicy: {{ .Values.failurePolicy }}
     sideEffects: None
     clientConfig:
       service:
-        name: noa
-        namespace: noa
+        name: {{ include "noa.fullname" . }}
+        namespace: {{ .Release.Namespace | quote }}
         path: /mutate
-        port: 8443
